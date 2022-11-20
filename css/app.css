@@ -1,0 +1,229 @@
+@font-face {
+    font-family: "ModeSeven";
+    src: url("../font/ModeSeven.woff2") format("woff2"),
+        url("../font/ModeSeven.woff") format("woff"),
+        url("../font/ModeSeven.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+html,
+body {
+    height: 100%;
+    background-color: #0d0d0d;
+    overflow: hidden;
+    font-family: "ModeSeven", monospace;
+}
+
+.disable-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.js-disabled {
+    display: block;
+    color: #fff;
+    font-size: 20px;
+    text-align: center;
+    margin-top: 25px;
+    text-transform: uppercase;
+}
+
+/* Xterm */
+#terminal {
+    margin: 25px;
+    width: 95%;
+    height: 95%;
+    display: none;
+}
+
+#terminal .xterm .xterm-viewport {
+    visibility: hidden;
+}
+
+.xterm {
+    cursor: default !important;
+}
+
+.xterm.column-select.focus {
+    cursor: default !important;
+}
+
+.xterm .composition-view.active {
+    text-transform: uppercase;
+}
+
+/* Simple Keyboard */
+.simple-keyboard {
+    display: none;
+}
+
+.simple-keyboard {
+    z-index: 1000;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+}
+
+.simple-keyboard.hg-theme-dark {
+    background-color: #363b3f;
+    border-radius: 0;
+    border-top: 2px solid #282f32;
+    font-size: 18px;
+    padding-top: 0px;
+}
+
+.simple-keyboard.hg-theme-dark .hg-rows {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.simple-keyboard.hg-theme-dark .hg-row:not(:last-child) {
+    margin-bottom: 0px;
+}
+
+.simple-keyboard.hg-theme-dark.hg-layout-default .hg-row:nth-child(2) {
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.simple-keyboard.hg-theme-dark.hg-layout-default .hg-row:nth-child(2) .hg-button-container,
+.simple-keyboard.hg-theme-dark.hg-layout-default .hg-row:nth-child(2) .hg-button:not(:last-child) {
+    margin-right: 6px;
+}
+
+.simple-keyboard.hg-theme-dark.hg-layout-default .hg-row:nth-child(3) .hg-button-container,
+.simple-keyboard.hg-theme-dark.hg-layout-default .hg-row:nth-child(3) .hg-button:not(:last-child) {
+    margin-right: 15px;
+}
+
+.simple-keyboard.hg-theme-dark.hg-layout-numbers .hg-button {
+    width: 25% !important;
+    height: 50px;
+    margin: 0;
+}
+
+.simple-keyboard.hg-theme-dark .hg-button {
+    height: 40px;
+    margin: 5px 0 5px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #363b3f;
+    color: #fff;
+    box-shadow: unset !important;
+    border-bottom: 0 !important;
+    border-radius: 0px;
+    font-weight: 500;
+}
+
+.simple-keyboard.hg-theme-dark .hg-button:active,
+.simple-keyboard.hg-theme-dark .hg-button.hg-activeButton {
+    background: #494d51;
+    color: #fff;
+}
+
+.simple-keyboard.hg-theme-dark.hg-layout-default .hg-button.hg-button-numbers,
+.simple-keyboard.hg-theme-dark.hg-layout-default .hg-button.hg-button-ent {
+    max-width: 80px;
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-abc,
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-numbers {
+    font-size: 15px;
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-abc:active,
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-abc.hg-activeButton,
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-numbers:active,
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-numbers.hg-activeButton {
+    background-color: #363b3f;
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-ent {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiA+PHBvbHlsaW5lIHBvaW50cz0iMTEyIDM1MiA0OCAyODggMTEyIDIyNCIgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6I2ZmZjtzdHJva2UtbGluZWNhcDpzcXVhcmU7c3Ryb2tlLW1pdGVybGltaXQ6MTA7c3Ryb2tlLXdpZHRoOjMycHgiLz48cG9seWxpbmUgcG9pbnRzPSI2NCAyODggNDY0IDI4OCA0NjQgMTYwIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnNxdWFyZTtzdHJva2UtbWl0ZXJsaW1pdDoxMDtzdHJva2Utd2lkdGg6MzJweCIvPjwvc3ZnPg==");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 28px 28px;
+    color: rgba(0, 0, 0, 0);
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-ent:active,
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-ent.hg-activeButton {
+    color: rgba(0, 0, 0, 0);
+    background-color: #363b3f;
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-backspace {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0iI2ZmZmZmZiI+PHBhdGggZD0iTTExLjU5NCA3bC0uMzEzLjI4MS04IDgtLjY4Ny43MTkuNjg3LjcxOSA4IDggLjMxMy4yODFIMjlWN3ptLjg0NCAySDI3djE0SDEyLjQzN2wtNy03em0yLjcxOCAyLjc1bC0xLjQwNiAxLjQwNkwxNi41OTQgMTZsLTIuODQ0IDIuODQ0IDEuNDA2IDEuNDA2TDE4IDE3LjQwNmwyLjg0NCAyLjg0NCAxLjQwNi0xLjQwNkwxOS40MDYgMTZsMi44NDQtMi44NDQtMS40MDYtMS40MDZMMTggMTQuNTk0eiIvPjwvc3ZnPg==");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 27px 27px;
+    color: rgba(0, 0, 0, 0);
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-backspace:active,
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-backspace.hg-activeButton {
+    color: rgba(0, 0, 0, 0);
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-space {
+    background-color: #56585e;
+    color: rgba(0, 0, 0, 0);
+    height: 30px;
+    margin-top: 10px;
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggNDIiIHg9IjBweCIgeT0iMHB4Ij4NCjxwb2x5Z29uIGZpbGw9IiNmZmZmZmYiIHBvaW50cz0iMC4wNywwLjcxIDAuMDcsNDEuMjMgMTI3LjkzLDQxLjIzIDEyNy45MywwLjcxIDExOC4yOCwwLjcxIDExOC4yOCwzMS4xIDkuNzIsMzEuMSA5LjcyLDAuNzEgIi8+DQo8L3N2Zz4=");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 24px 24px;
+}
+
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-space:active,
+.simple-keyboard.hg-theme-dark .hg-button.hg-button-space.hg-activeButton {
+    background-color: #717578 !important;
+    color: rgba(0, 0, 0, 0);
+}
+
+.simple-keyboard.hg-theme-dark.hg-layout-numbers .hg-button.hg-button-space {
+    background-color: #363b3f;
+    color: rgba(0, 0, 0, 0);
+    height: 50px;
+    margin-top: 0px;
+}
+
+.simple-keyboard.hg-theme-dark.hg-layout-numbers .hg-button.hg-button-space:active,
+.simple-keyboard.hg-theme-dark.hg-layout-numbers .hg-button.hg-button-space.hg-activeButton {
+    background-color: #494d51 !important;
+    color: rgba(0, 0, 0, 0);
+}
+
+@media (orientation: landscape) {
+    .simple-keyboard.hg-theme-dark {
+        font-size: 16px;
+    }
+
+    .simple-keyboard.hg-theme-dark .hg-button {
+        height: 40px;
+        margin: 0px;
+    }
+
+    .simple-keyboard.hg-theme-dark.hg-layout-numbers .hg-button {
+        height: 40px;
+    }
+
+    .simple-keyboard.hg-theme-dark.hg-layout-numbers .hg-button.hg-button-space {
+        height: 40px;
+    }
+
+    .simple-keyboard.hg-theme-dark.hg-layout-default .hg-button.hg-button-numbers,
+    .simple-keyboard.hg-theme-dark.hg-layout-default .hg-button.hg-button-ent {
+        max-width: 120px;
+    }
+
+    .simple-keyboard.hg-theme-dark .hg-button.hg-button-space {
+        margin-top: 5px;
+    }
+}
