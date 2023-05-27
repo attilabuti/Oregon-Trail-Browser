@@ -13,16 +13,16 @@
 	if (!globalThis.fs) {
 		globalThis.fs = {
 			constants: { O_WRONLY: -1, O_RDWR: -1, O_CREAT: -1, O_TRUNC: -1, O_APPEND: -1, O_EXCL: -1 }, // unused
-			writeSync(fd, buf) {
-				term.write(decoder.decode(buf));
+			async writeSync(fd, buf) {
+				await term.writes(decoder.decode(buf));
 				return buf.length;
 			},
-			write(fd, buf, offset, length, position, callback) {
+			async write(fd, buf, offset, length, position, callback) {
 				if (offset !== 0 || length !== buf.length || position !== null) {
 					callback(enosys());
 					return;
 				}
-				const n = this.writeSync(fd, buf);
+				const n = await this.writeSync(fd, buf);
 				callback(null, n);
 			},
 		};

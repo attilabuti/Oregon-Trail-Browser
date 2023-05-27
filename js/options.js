@@ -1,14 +1,16 @@
 var options = {
     wasm: "wasm/oregon78.wasm",
     bell: "audio/bell.mp3",
-    version: "v1.0.0",
+    version: "v1.1.0",
     fontSize: {
         default: 18,
         mobile: 14,
     },
+    crt: true,
     mobileBreakpoint: 500,
     terminal: {
         id: "terminal",
+        delay: 3,
         xterm: {
             allowProposedApi: true,
             allowTransparency: true,
@@ -27,11 +29,16 @@ var options = {
             rows: 24,
             scrollback: 2000,
             theme: {
-                foreground: "#f3ffff",
-                background: "#0d0d0d",
-                cursor: "#f3ffff",
-                cursorAccent: "#f3ffff",
+                foreground: "#CCE",
+                background: "#141414",
+                cursor: "#CCE",
+                cursorAccent: "#CCE",
             },
+            link: {
+                decorations: {
+                    underline: false
+                }
+            }
         },
     },
     keyboard: {
@@ -87,4 +94,12 @@ if (localStorage.getItem("color") !== null) {
     options.terminal.xterm.theme.foreground = color;
     options.terminal.xterm.theme.cursor = color;
     options.terminal.xterm.theme.cursorAccent = color;
+}
+
+if (localStorage.getItem("crt") !== null) {
+    if (localStorage.getItem("crt") == 1) {
+        options.crt = true;
+    } else {
+        options.crt = false;
+    }
 }

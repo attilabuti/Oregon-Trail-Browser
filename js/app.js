@@ -4,8 +4,11 @@ var app = {
     addon: {
         fit: new FitAddon.FitAddon(),
         webgl: new WebglAddon.WebglAddon(),
+        webLinks: new WebLinksAddon.WebLinksAddon(),
     },
     wasm: new Wasm(options.wasm),
+    stopped: false,
+    cmdrun: false,
     keyboard: null,
     loaded: {
         audio: false,
@@ -27,17 +30,21 @@ loadAudio(options.bell, () => {
     app.loaded.audio = true;
 });
 
-let termLoaded = setInterval(() => {
+let termLoaded = setInterval(async () => {
     if (app.loaded.term) {
         clearInterval(termLoaded);
 
-        term.writeln(`${getDateTime()} MECC01`);
-        term.writeln("CDC TIME-SHARING SYSTEM NOS\nFAMILY: SYS1\n");
+        if (!options.crt) {
+            app.termEl.classList.remove('crt');
+        }
 
-        term.writeln("TYPE THE FOLLOWING COMMAND TO RUN THE OREGON TRAIL: RUN OREGON");
-        term.writeln(`TYPE "HELP" FOR A LIST OF COMMANDS.\n`);
+        await term.writelns(`${getDateTime()} MECC01`);
+        await term.writelns("CDC TIME-SHARING SYSTEM NOS\nFAMILY: SYS1\n");
 
-        term.writeln("READY.\n");
+        await term.writelns("TYPE THE FOLLOWING COMMAND TO RUN THE OREGON TRAIL: RUN OREGON");
+        await term.writelns(`TYPE "HELP" FOR A LIST OF COMMANDS.\n`);
+
+        await term.writelns("READY.\n");
 
         term.prompt();
     }

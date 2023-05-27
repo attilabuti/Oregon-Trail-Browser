@@ -7,7 +7,7 @@ term.attachCustomKeyEventHandler(e => {
         term.ctrlDown = false;
     }
 
-    if ([33, 34, 37, 38, 39, 40, 67, 76, 122].includes(e.keyCode) || ["Cancel"].includes(e.key)) {
+    if ([33, 34, 37, 38, 39, 40, 122].includes(e.keyCode) || ["Cancel"].includes(e.key)) {
         if (e.type !== "keydown") {
             return false;
         }
@@ -32,10 +32,26 @@ term.attachCustomKeyEventHandler(e => {
             }
         } else if (e.keyCode === 122) { // F11
             requestFullScreen();
-        } else if ((term.ctrlDown && e.keyCode === 67) || (e.key === "Cancel")) { // Ctrl+C / Cmd+C
-            app.wasm.stop();
-        } else if (term.ctrlDown && e.keyCode === 76) { // Ctrl+L / Cmd+L
-            if (!app.wasm.isRunning) {
+        } else if (e.key === "Cancel") {
+            if (app.wasm.isRunning) {
+                app.stopped = true;
+                app.wasm.stop();
+            }
+        }
+
+        return false;
+    } else if (term.ctrlDown && [67, 76].includes(e.keyCode)) {
+        if (e.type !== "keydown") {
+            return false;
+        }
+
+        if (e.keyCode === 67) { // Ctrl+C / Cmd+C
+            if (app.wasm.isRunning) {
+                app.stopped = true;
+                app.wasm.stop();
+            }
+        } else if (e.keyCode === 76) { // Ctrl+L / Cmd+L
+            if (!app.wasm.isRunning && !app.cmdrun) {
                 term.clearScreen();
                 term.prompt();
             }
@@ -90,6 +106,7 @@ term.handleEnter = () => {
 
     if (app.wasm.isRunning) {
         if (isMobile() && term.input.toLowerCase() === "exit") {
+            app.stopped = true;
             app.wasm.stop();
             return;
         }

@@ -6,6 +6,7 @@ term.ready = false;
 term.input = "";
 
 term.loadAddon(app.addon.fit);
+term.loadAddon(app.addon.webLinks);
 
 app.addon.webgl.onContextLoss(e => {
     app.addon.webgl.dispose();
@@ -24,6 +25,40 @@ term.prompt = () => {
     term.write(">");
 };
 
+term.writelns = async (data) => {
+    term.write("\u001B[?25l"); // Hide cursor (DECTCEM)
+
+    if (data.length > 0) {
+        for (let char of data) {
+            if (app.stopped) {
+                app.stopped = false;
+                return;
+            }
+
+            term.write(char)
+            await sleep(options.terminal.delay);
+        }
+    }
+
+    term.writeln("");
+};
+
+term.writes = async (data) => {
+    term.write("\u001B[?25l"); // Hide cursor (DECTCEM)
+
+    if (data.length > 0) {
+        for (let char of data) {
+            if (app.stopped) {
+                app.stopped = false;
+                return;
+            }
+
+            term.write(char)
+            await sleep(options.terminal.delay);
+        }
+    }
+};
+
 function wasmPrompt() {
     term.ready = true;
     term.write("\u001B[?25h");
@@ -35,7 +70,7 @@ function wasmPrompt() {
 
 term.hidePrompt = () => {
     term.ready = false;
-    term.write("\u001B[?25l");
+    term.write("\u001B[?25l"); // Hide cursor (DECTCEM)
 };
 
 term.windowResize = () => {
@@ -61,7 +96,7 @@ term.windowResize = () => {
     app.termEl.style.height = height + "px";
     app.termEl.style.width = window.innerWidth - (margin * 2) + "px";
 
-    app.addon.fit.fit();
+    term.fit();
 };
 
 window.addEventListener("resize", () => {
@@ -96,6 +131,14 @@ term.bellWait = () => {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+term.fit = () => {
+    app.addon.fit.fit();
+
+    if (term.cols > 80) {
+        term.resize(80, term.rows);
+    }
+};
+
 app.fontFaceObserver.load(null, 2000).then(() => {
     term.run();
 }, () => {
@@ -104,7 +147,7 @@ app.fontFaceObserver.load(null, 2000).then(() => {
 
     app.fontFaceObserver.load(null, 10000).then(() => {
         term.options.fontFamily = options.terminal.xterm.fontFamily;
-        app.addon.fit.fit();
+        term.fit();
     });
 });
 

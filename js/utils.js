@@ -75,6 +75,10 @@ function requestFullScreen() {
     return false;
 }
 
+function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+}
+
 function getDateTime() {
     let d = new Date();
 
