@@ -155,7 +155,11 @@ term.run = () => {
     term.open(app.termEl);
 
     term._core._selectionService.disable();
-    term.loadAddon(app.addon.webgl);
+    if (!term._core.browser.isFirefox) {
+        term.loadAddon(app.addon.webgl);
+    } else {
+        term.options.lineHeight = 1;
+    }
 
     if (isMobile()) {
         document.querySelector(".xterm-helper-textarea").style.display = "none";

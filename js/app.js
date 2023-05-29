@@ -10,6 +10,7 @@ var app = {
     stopped: false,
     cmdrun: false,
     keyboard: null,
+    style: document.createElement("style"),
     loaded: {
         audio: false,
         term: false,
@@ -19,6 +20,9 @@ var app = {
         },
     }
 };
+
+document.head.appendChild(app.style);
+app.style.sheet.insertRule(`.xterm-cursor-block { outline: 0px !important; outline-offset: 0px !important; background-color: ${options.terminal.xterm.theme.cursor}; }`, 0);
 
 window.oncontextmenu = () => {
     return false;

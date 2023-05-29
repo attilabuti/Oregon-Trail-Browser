@@ -55,6 +55,9 @@ var command = (() => {
             } else {
                 localStorage.removeItem("color");
             }
+
+            app.style.sheet.deleteRule(0);
+            app.style.sheet.insertRule(`.xterm-cursor-block { outline: 0px !important; outline-offset: 0px !important; background-color: ${color}; }`, 0);
         } else {
             await term.writelns(" ERROR: UNKNOWN COLOR");
         }
@@ -101,6 +104,7 @@ var command = (() => {
         await term.writelns("  SET FONTSIZE <VALUE>\n    SETS THE FONT SIZE");
         await term.writelns("  CRT\n    ENABLE / DISABLE CRT EFFECT");
         await term.writelns("  RESTORE\n    RESTORE DEFAULT SETTINGS");
+        await term.writelns("  RESET\n    RESET TERMINAL");
         await term.writelns("  ABOUT\n    INFORMATION ABOUT THE GAME");
         await term.writelns("  HELP\n    PRINT THIS HELP TEXT");
         await term.writelns("  VERSION\n    PRINT PROGRAM VERSION");
@@ -133,6 +137,9 @@ var command = (() => {
                 return;
             } else if (cmd == "restore") {
                 restore();
+            } else if (cmd == "reset") {
+                window.location.reload();
+                return;
             } else if (cmd.includes("set fontsize")) {
                 await setFontSize(cmd, true);
             } else if (cmd.includes("set color")) {
