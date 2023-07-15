@@ -33,6 +33,10 @@ class Wasm {
         return this._isRunning;
     }
 
+    get isLoading() {
+        return this._isLoading;
+    }
+
     get inputResolve() {
         return this._inputResolve;
     }
@@ -69,10 +73,10 @@ class Wasm {
             return;
         }
 
-        term.hidePrompt();
+        Term.hidePrompt();
 
         if (this._isLoading) {
-            term.writeln(" LOADING, PLEASE WAIT...");
+            Term.writeln(" LOADING, PLEASE WAIT...");
 
             let status = setInterval(() => {
                 if (this._stopLoading) {
@@ -96,8 +100,8 @@ class Wasm {
     }
 
     error() {
-        term.writeln(" ERROR: FAILED TO DOWNLOAD WASM FILE");
-        term.prompt();
+        Term.writeln(" ERROR: FAILED TO DOWNLOAD WASM FILE");
+        Term.prompt();
 
         this._isLoading = false;
         this._isLoaded = false;
@@ -109,7 +113,7 @@ class Wasm {
 
     async _run() {
         this._isRunning = true;
-        term.clearScreen();
+        Term.clearScreen();
 
         await this._go.run(this._instance);
         this._instance = await WebAssembly.instantiate(this._module, this._go.importObject); // reset instance
@@ -136,8 +140,8 @@ class Wasm {
         this._inputResolve = null;
         this._isRunning = false;
 
-        term.input = "";
-        term.writeln(msg);
-        term.prompt();
+        Term.input = "";
+        Term.writeln(msg);
+        Term.prompt();
     }
 }

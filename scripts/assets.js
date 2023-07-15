@@ -25,7 +25,7 @@ module.exports = {
 
     js: [
         "./node_modules/xterm/lib/xterm.js",
-        "./node_modules/xterm-addon-fit/lib/xterm-addon-fit.js",
+        "./js/xterm-addon-fit/xterm-addon-fit.js",
         "./node_modules/xterm-addon-webgl/lib/xterm-addon-webgl.js",
         "./js/xterm-addon-web-links/xterm-addon-web-links.js",
         "./node_modules/fontfaceobserver/fontfaceobserver.standalone.js",
@@ -45,6 +45,7 @@ module.exports = {
         "./font/": `${BUILD}font/`,
         "./wasm/": `${BUILD}wasm/`,
         "./img/": `${BUILD}img/`,
+        "./other/": `${BUILD}other/`,
         "./node_modules/fastestsmallesttextencoderdecoder/EncoderDecoderTogether.min.js": `${BUILD}js/lib/EncoderDecoderTogether.min.js`,
         "./node_modules/simple-keyboard/build/index.js": `${BUILD}js/lib/simple-keyboard.min.js`,
         "./node_modules/simple-keyboard/build/css/index.css": `${BUILD}css/lib/simple-keyboard.min.css`,
@@ -54,5 +55,17 @@ module.exports = {
         "js/lib/EncoderDecoderTogether.min.js": "./node_modules/fastestsmallesttextencoderdecoder/EncoderDecoderTogether.min.js",
         "js/lib/simple-keyboard.min.js": "./node_modules/simple-keyboard/build/index.js",
         "css/lib/simple-keyboard.min.css": "./node_modules/simple-keyboard/build/css/index.css",
+
+        // Favicon
+        "android-chrome-192x192.png": "./img/favicon/android-chrome-192x192.png",
+        "android-chrome-512x512.png": "./img/favicon/android-chrome-512x512.png",
+        "apple-touch-icon.png": "./img/favicon/apple-touch-icon.png",
+        "browserconfig.xml": "./img/favicon/browserconfig.xml",
+        "favicon-16x16.png": "./img/favicon/favicon-16x16.png",
+        "favicon-32x32.png": "./img/favicon/favicon-32x32.png",
+        "favicon.ico": "./img/favicon/favicon.ico",
+        "mstile-150x150.png": "./img/favicon/mstile-150x150.png",
+        "safari-pinned-tab.svg": "./img/favicon/safari-pinned-tab.svg",
+        "site.webmanifest": "./img/favicon/site.webmanifest",
     },
 };

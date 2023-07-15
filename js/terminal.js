@@ -1,181 +1,387 @@
-app.termEl.style.display = "block";
+App.termEl.style.display = "block";
 
-const term = new Terminal(options.terminal.xterm);
+const Term = new Terminal(Options.terminal.xterm);
 
-term.ready = false;
-term.input = "";
+Term.ready = false;
+Term.input = "";
+Term.promptText = "";
+Term.promptPosition = undefined;
+Term.resizeEvent = new CustomEvent("term.resize");
+Term.resizeInProgress = false;
+Term.isWriting = false;
+Term.scrollHeight = 0;
 
-term.loadAddon(app.addon.fit);
-term.loadAddon(app.addon.webLinks);
+Term.loadAddon(App.addon.fit);
+Term.loadAddon(App.addon.webLinks);
 
-app.addon.webgl.onContextLoss(e => {
-    app.addon.webgl.dispose();
+App.addon.webgl.onContextLoss(e => {
+    App.addon.webgl.dispose();
 });
 
-term.clearScreen = () => {
-    // \033[3J - Clear terminal screen and delete everything in the scrollback buffer. Specific to xterm-like terminals
-    // \033[H  - Move cursor to top left corner
-    // \033[2J - Clear terminal screen
-    term.write("\033[3J\033[H\033[2J");
-};
+Term.getPromptPosition = () => {
+    let pos = 0;
 
-term.prompt = () => {
-    term.ready = true;
-    term.write("\u001B[?25h");
-    term.write(">");
-};
+    if (Term.promptPosition !== undefined) {
+        pos = Term.promptPosition.line;
 
-term.writelns = async (data) => {
-    term.write("\u001B[?25l"); // Hide cursor (DECTCEM)
-
-    if (data.length > 0) {
-        for (let char of data) {
-            if (app.stopped) {
-                app.stopped = false;
-                return;
+        while (pos >= 0) {
+            let currentLine = Term.buffer.active.getLine(pos);
+            if (!currentLine.isWrapped) {
+                break;
             }
 
-            term.write(char)
-            await sleep(options.terminal.delay);
+            pos--;
         }
     }
 
-    term.writeln("");
+    return pos;
 };
 
-term.writes = async (data) => {
-    term.write("\u001B[?25l"); // Hide cursor (DECTCEM)
+Term.getPromptText = () => {
+    let promptText = "";
+    let pos = Term.buffer.active._buffer.y + Term.buffer.active._buffer.ybase;
 
-    if (data.length > 0) {
-        for (let char of data) {
-            if (app.stopped) {
-                app.stopped = false;
-                return;
-            }
+    while (pos >= 0) {
+        let currentLine = Term.buffer.active.getLine(pos);
+        promptText = currentLine.translateToString(true) + promptText;
 
-            term.write(char)
-            await sleep(options.terminal.delay);
+        if (!currentLine.isWrapped) {
+            break;
         }
+
+        pos--;
     }
+
+    Term.promptText = promptText;
+}
+
+Term.clearScreen = () => {
+    // \x1B[3J - Clear terminal screen and delete everything in the scrollback buffer
+    // \x1B[H  - Move cursor to top left corner
+    // \x1B[2J - Clear terminal screen
+    Term.write("\x1B[3J\x1B[H\x1B[2J");
+};
+
+Term.prompt = async () => {
+    // \x1B[?25h - Make cursor visible
+    // \x1b[?45h - Reverse-wraparound Mode
+    Term.write("\x1B[?25h\x1b[?45h>", () => {
+        Term.getPromptText();
+        Term.promptPosition = Term.registerMarker(0);
+        Term.input = "";
+        Term.ready = true;
+    });
 };
 
 function wasmPrompt() {
-    term.ready = true;
-    term.write("\u001B[?25h");
+    // \x1B[?25h - Make cursor visible
+    // \x1b[?45h - Reverse-wraparound Mode
+    Term.write("\x1B[?25h\x1b[?45h", () => {
+        Term.getPromptText();
+        Term.promptPosition = Term.registerMarker(0);
+        Term.input = "";
+        Term.ready = true;
+    });
 
     return new Promise(resolve => {
-        app.wasm.inputResolve = resolve;
+        App.wasm.inputResolve = resolve;
     });
 }
 
-term.hidePrompt = () => {
-    term.ready = false;
-    term.write("\u001B[?25l"); // Hide cursor (DECTCEM)
+Term.reflowPrompt = () => {
+    if (!Term.ready) {
+        return;
+    }
+
+    let start = Term.getPromptPosition() + 1;
+    let end = Term.buffer.active.cursorY + 1 + Term.buffer.active._buffer.ybase;
+    let cursorY = Term.buffer.active.cursorY;
+
+    while (end >= start) {
+        // \x1b[2K - Erase the entire line
+        Term.write("\x1b[2K");
+
+        if (end != start) {
+            if (cursorY < 1) {
+                if (Term.buffer.active._buffer.ybase > 0) {
+                    Term.buffer.active._buffer.ybase--;
+                    Term.buffer.active._buffer.ydisp = Term.buffer.active._buffer.ybase;
+                    Term.scrollToBottom();
+                }
+            } else {
+                // \x1b[y;xH - Moves cursor to line y, column x
+                Term.write(`\x1b[${cursorY + 1};0H`);
+                cursorY--;
+            }
+        }
+
+        end--;
+    }
+
+    // \x1b[y;xH - Moves cursor to line y, column x
+    Term.write(`\x1b[${cursorY + 1};0H${Term.promptText}`, () => {
+        Term.promptPosition.dispose();
+        Term.promptPosition = Term.registerMarker(0);
+
+        // \x1b[0J - Erase from cursor until end of screen
+        Term.write(`${Term.input.toUpperCase()}\x1b[0J`);
+
+        Term.refresh(0, Term.buffer.active.length);
+    });
 };
 
-term.windowResize = () => {
-    let margin = 25;
-    if (window.innerWidth < options.mobileBreakpoint) {
+Term.writelns = async text => {
+    await Term.writes(text + "\n");
+};
+
+Term.writes = async text => {
+    if (text.length == 0) {
+        return;
+    }
+
+    Term.isWriting = true;
+
+    // \x1B[?25l - Make cursor invisible
+    Term.write("\x1B[?25l");
+
+    if (Options.receive != 0) {
+        const chars = Array.from(text);
+
+        let delay = 0, skipChars = 0;
+        let writeTime = 1000 / (Options.receive / 10);
+        if (writeTime < Options.timeoutDelay) {
+            delay = Options.timeoutDelay;
+            skipChars = Math.ceil(Options.timeoutDelay / writeTime);
+        } else {
+            delay = Math.floor(writeTime);
+        }
+
+        let timeDifference;
+        let originalSkipChars = skipChars;
+        let targetTime;
+        let printable = "";
+        let skipCounter = 0;
+        let currentTime;
+        let start = performance.timeOrigin + performance.now();
+        for (let i = 0; i < chars.length; i++) {
+            if (App.stopped) {
+                App.stopped = false;
+                Term.isWriting = false;
+                Term.forceWindowResize();
+
+                return;
+            }
+
+            if (skipCounter >= skipChars || i == chars.length - 1) {
+                Term.write(printable + chars[i]);
+                await Utils.sleep(delay);
+                Term.forceWindowResize();
+
+                if (!Term._core.browser.isFirefox) {
+                    targetTime = writeTime * i;
+                    currentTime = performance.timeOrigin + performance.now() - start;
+
+                    if (targetTime < currentTime) {
+                        timeDifference = currentTime - targetTime;
+                        if (timeDifference >= delay && skipChars > 0) {
+                            skipChars = skipChars * (Math.floor(timeDifference / delay) + 1);
+                        } else {
+                            skipChars = Math.floor(timeDifference / delay) + 1;
+                        }
+                    } else {
+                        skipCounter = originalSkipChars;
+                        timeDifference = targetTime - currentTime;
+
+                        if (timeDifference >= delay) {
+                            await Utils.sleep(timeDifference);
+                        }
+                    }
+                }
+
+                printable = "";
+                skipCounter = 0;
+            } else {
+                skipCounter++;
+                printable += chars[i];
+            }
+        }
+    } else {
+        Term.write(text);
+    }
+
+    Term.isWriting = false;
+    Term.forceWindowResize();
+};
+
+Term.hidePrompt = () => {
+    Term.ready = false;
+
+    Term.promptPosition.dispose();
+    Term.promptPosition = undefined;
+
+    // \x1b[?45l - No Reverse-wraparound Mode
+    // \x1B[?25l - Make cursor invisible
+    Term.write("\x1b[?45l\x1B[?25l");
+};
+
+Term.forceWindowResize = () => {
+    if (Term.resizeInProgress) {
+        Term.windowResize(true);
+    }
+};
+
+Term.windowResize = forced => {
+    Term.resizeInProgress = true;
+
+    if ((!forced || forced === undefined) && Term.isWriting) {
+        return;
+    }
+
+    let margin = 20;
+    if (window.innerWidth < Options.mobileBreakpoint) {
         margin = 5;
     }
 
     let height = window.innerHeight - (margin * 2);
-    if (isMobile()) {
-        height = height - document.querySelector(options.keyboard.selector).offsetHeight;
+    if (Utils.isMobile()) {
+        height = height - document.querySelector(Options.keyboard.selector).offsetHeight;
     }
 
+    Term.scrollHeight = Math.floor(height / Term.rows);
+
     if (localStorage.getItem("fontSize") === null) {
-        if (window.innerWidth < options.mobileBreakpoint) {
-            term.options.fontSize = options.fontSize.mobile;
+        if (window.innerWidth < Options.mobileBreakpoint) {
+            Term.options.fontSize = Options.fontSize.mobile;
         } else {
-            term.options.fontSize = options.fontSize.default;
+            Term.options.fontSize = Options.fontSize.default;
         }
     }
 
-    app.termEl.style.margin = margin + "px";
-    app.termEl.style.height = height + "px";
-    app.termEl.style.width = window.innerWidth - (margin * 2) + "px";
+    App.termEl.style.margin = margin + "px";
+    App.termEl.style.height = height + "px";
+    App.termEl.style.width = window.innerWidth - (margin * 2) + "px";
 
-    term.fit();
+    Term.fit();
+
+    Term.resizeInProgress = false;
 };
 
+Term.onResize(() => {
+    window.dispatchEvent(Term.resizeEvent);
+});
+
+window.addEventListener("term.resize", Utils.debounce(() => {
+    Term.reflowPrompt();
+}, 500));
+
 window.addEventListener("resize", () => {
-    term.windowResize();
+    Term.windowResize();
 }, true);
 
-term.bell = {
+Term.fit = () => {
+    App.addon.fit.fit();
+};
+
+Term.bell = {
     counter: 0,
     wait: 0,
 };
 
-term.onBell(() => {
-    term.bell.counter++;
+Term.onBell(() => {
+    Term.bell.counter++;
 
-    term.bellWait().then(() => {
-        let audio = new Audio(options.bell);
+    Term.bellWait().then(() => {
+        let audio = new Audio(Options.bell);
         audio.play();
 
-        term.bell.counter--;
-        if (term.bell.counter == 0) {
-            term.bell.wait = 0;
+        Term.bell.counter--;
+        if (Term.bell.counter == 0) {
+            Term.bell.wait = 0;
         }
     });
 
     return true;
 });
 
-term.bellWait = () => {
-    let ms = term.bell.wait;
-    term.bell.wait += 150;
+Term.bellWait = () => {
+    let ms = Term.bell.wait;
+    Term.bell.wait += 150;
 
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-term.fit = () => {
-    app.addon.fit.fit();
-
-    if (term.cols > 80) {
-        term.resize(80, term.rows);
-    }
-};
-
-app.fontFaceObserver.load(null, 2000).then(() => {
-    term.run();
+App.fontFaceObserver.load(null, 2000).then(() => {
+    Term.run();
 }, () => {
-    term.options.fontFamily = "monospace";
-    term.run();
+    Term.options.fontFamily = "monospace";
+    Term.run();
 
-    app.fontFaceObserver.load(null, 10000).then(() => {
-        term.options.fontFamily = options.terminal.xterm.fontFamily;
-        term.fit();
+    App.fontFaceObserver.load(null, 10000).then(() => {
+        Term.options.fontFamily = Options.terminal.xterm.fontFamily;
+        Term.fit();
     });
 });
 
-term.run = () => {
-    term.open(app.termEl);
+Term.run = () => {
+    Term.open(App.termEl);
 
-    term._core._selectionService.disable();
-    if (!term._core.browser.isFirefox) {
-        term.loadAddon(app.addon.webgl);
-    } else {
-        term.options.lineHeight = 1;
+    Term._core._selectionService.disable();
+    Term._core._selectionService.shouldForceSelection = () => {
+        return false;
+    };
+
+    if (!Utils.isCanvasBlocked() && Utils.detectWebGLContext()) {
+        Term.loadAddon(App.addon.webgl);
     }
 
-    if (isMobile()) {
+    if (Term._core.browser.isFirefox) {
+        Term.options.lineHeight = 1;
+    }
+
+    if (Utils.isMobile()) {
         document.querySelector(".xterm-helper-textarea").style.display = "none";
     }
 
     document.querySelector(".terminal.xterm").classList.add("focus");
-    term._core._showCursor();
-    Object.defineProperty(term._core._coreBrowserService, "isFocused", {
+    Term._core._showCursor();
+    Object.defineProperty(Term._core._coreBrowserService, "isFocused", {
         get: () => {
             return true;
         },
     });
 
-    term.write("\u001B[?25h");
-    term.focus();
-    term.windowResize();
+    // \x1B[?25h - Make cursor visible
+    Term.write("\x1B[?25h");
+    Term.focus();
+    Term.windowResize();
 
-    app.loaded.term = true;
+    App.loaded.term = true;
 };
+
+if (Utils.isMobile()) {
+    Term.touchStartPosY = 0;
+
+    App.termEl.addEventListener("touchmove", e => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const evt = (typeof e.originalEvent === "undefined") ? e : e.originalEvent;
+        const touch = evt.touches[0] || evt.changedTouches[0];
+
+        const currentY = Math.round(touch.pageY);
+        if (Term.touchStartPosY === currentY) {
+            return;
+        }
+
+        const move = Term.touchStartPosY - currentY;
+        if (Math.abs(move) > Term.scrollHeight) {
+            if (move > 0) {
+                Term.scrollLines(1);
+            } else {
+                Term.scrollLines(-1);
+            }
+
+            Term.touchStartPosY = currentY;
+        }
+    }, { passive: false });
+}

@@ -1,19 +1,19 @@
-if (isMobile()) {
-    document.querySelector(options.keyboard.selector).style.display = "block";
+if (Utils.isMobile()) {
+    document.querySelector(Options.keyboard.selector).style.display = "block";
 
-    loadCSS(options.keyboard.files.css, () => {
-        app.loaded.keyboard.css = true;
+    Utils.load.css(Options.keyboard.files.css, () => {
+        App.loaded.keyboard.css = true;
     });
 
-    loadJS(options.keyboard.files.js, () => {
-        app.loaded.keyboard.js = true;
-        app.keyboard = new window.SimpleKeyboard.default(options.keyboard.simpleKeyboard);
+    Utils.load.js(Options.keyboard.files.js, () => {
+        App.loaded.keyboard.js = true;
+        App.keyboard = new window.SimpleKeyboard.default(Options.keyboard.simpleKeyboard);
     });
 
     let keyboardLoaded = setInterval(() => {
-        if (app.loaded.term && app.loaded.keyboard.css && app.loaded.keyboard.js) {
+        if (App.loaded.term && App.loaded.keyboard.css && App.loaded.keyboard.js) {
             clearInterval(keyboardLoaded);
-            term.windowResize();
+            Term.windowResize();
         }
     }, 25);
 }

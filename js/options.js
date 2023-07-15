@@ -1,16 +1,16 @@
-var options = {
+const Options = {
     wasm: "wasm/oregon78.wasm",
     bell: "audio/bell.mp3",
-    version: "v1.1.0",
     fontSize: {
         default: 18,
         mobile: 14,
     },
     crt: true,
+    receive: 19200,
+    timeoutDelay: 0,
     mobileBreakpoint: 500,
     terminal: {
         id: "terminal",
-        delay: 3,
         xterm: {
             allowProposedApi: true,
             allowTransparency: true,
@@ -20,8 +20,8 @@ var options = {
             cols: 80,
             cursorBlink: false,
             cursorStyle: "block",
-            // fontSize: 18,
             fontFamily: "ModeSeven",
+            macOptionClickForcesSelection: false,
             letterSpacing: 2,
             lineHeight: 1.2,
             logLevel: "off",
@@ -36,9 +36,9 @@ var options = {
             },
             link: {
                 decorations: {
-                    underline: false
-                }
-            }
+                    underline: false,
+                },
+            },
         },
     },
     keyboard: {
@@ -48,7 +48,7 @@ var options = {
         },
         selector: ".simple-keyboard",
         simpleKeyboard: {
-            onKeyPress: button => term.onKeyMobile(button),
+            onKeyPress: button => Term.onKeyMobile(button),
             theme: "hg-theme-default hg-theme-dark",
             mergeDisplay: true,
             autoUseTouchEvents: true,
@@ -79,27 +79,31 @@ var options = {
 };
 
 if (localStorage.getItem("fontSize") !== null) {
-    options.terminal.xterm.fontSize = localStorage.getItem("fontSize");
+    Options.terminal.xterm.fontSize = localStorage.getItem("fontSize");
 } else {
-    if (window.innerWidth < options.mobileBreakpoint) {
-        options.terminal.xterm.fontSize = options.fontSize.mobile;
+    if (window.innerWidth < Options.mobileBreakpoint) {
+        Options.terminal.xterm.fontSize = Options.fontSize.mobile;
     } else {
-        options.terminal.xterm.fontSize = options.fontSize.default;
+        Options.terminal.xterm.fontSize = Options.fontSize.default;
     }
 }
 
 if (localStorage.getItem("color") !== null) {
     let color = localStorage.getItem("color");
 
-    options.terminal.xterm.theme.foreground = color;
-    options.terminal.xterm.theme.cursor = color;
-    options.terminal.xterm.theme.cursorAccent = color;
+    Options.terminal.xterm.theme.foreground = color;
+    Options.terminal.xterm.theme.cursor = color;
+    Options.terminal.xterm.theme.cursorAccent = color;
 }
 
 if (localStorage.getItem("crt") !== null) {
     if (localStorage.getItem("crt") == 1) {
-        options.crt = true;
+        Options.crt = true;
     } else {
-        options.crt = false;
+        Options.crt = false;
     }
+}
+
+if (localStorage.getItem("receive") !== null) {
+    Options.receive = localStorage.getItem("receive");
 }
